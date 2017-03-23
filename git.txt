@@ -1,0 +1,53 @@
+git rm --cached  filename  不跟踪该文件
+git rm -f 强制删除
+git checkout -- <file>  放弃本次文件的修改
+git diff 命令比较的是工作目录中当前文件和暂存区域快照之间的差异，也就是修改之后还没有暂存起来的变化内容。
+git diff --cached 已经暂存起来的文件和上次提交时的快照之间的差异
+			git diff --staged，效果是相同的
+git reset HEAD <file> 撤出暂存区
+git commit -a 跳过使用暂存区域 直接提交了 省略了 git add过程
+
+git mv a b  重命文件名 a 到 b
+git log 查看提交记录
+
+git log -p -2 -p 选项展开显示每次提交的内容差异，用 -2 则仅显示最近的两次更新
+git log --stat 显示简要的增改行数统计
+
+git commit --amend  跟上次提交 是一个提交
+git remote 要查看当前配置有哪些远程仓库，可以用  命令
+git remote -v 显示对应的克隆地址：
+SSH URL 链接，这个仓库能推送数据上
+git remote add demo https://github.com/JaySong/SemiCircleRectView.git  添加远程仓库  demo是自己命名的
+git fetch [remote-name]  从远程仓库抓取数据到本地：
+	fetch 命令只是将远端的数据拉到本地仓库，并不自动合并到当前工作分支，只有当你确实准备好了，才能手工合并
+git push [remote-name] [branch-name]推送数据到远程仓库
+
+git remote show origin查看某个远程仓库的详细信
+git remote rename 修改某个远程仓库在本地的简短名称
+
+git remote rm 移除对应的远端仓库
+git tag 列显已有的标签
+
+含附注的标签
+git tag -a v1.4 -m 'my version 1.4'
+git show 命令查看相应标签的版本信息，并连同显示打标签时的提交对象
+git show v1.4
+
+git branch命令 创建分支
+
+git checkout 分支名 切换分支
+
+git checkout -b 分支名 相当于先创建再切换
+git merge 分支名 合并分支 由于当前 master 分支所在的提交对象是要并入的 hotfix 分支的直接上游，Git 只需把master 分支指针直接右移
+git branch -d hotfix 删除分支
+git branch -v  查看各个分支最后一个提交对象的信息
+git branch –merge 查看哪些分支已被并入当前分支
+git branch -d 删除   -D强制删除
+ git fetch origin
+refs/heads/serverfix
+若想把远程分支叫作awesomebranch，可以用 git push origin serverfix:awesomebranch 来推送数据
+ git checkout -b serverfix origin/serverfix 这会切换到新建的 serverfix 本地分支，其内容同远程分支 origin/serverfix 一致，这样你就可以在里面继续开发了。
+git checkout --track origin/serverfix 跟踪分支
+git checkout -b sf origin/serverfix 名字不一样
+git push origin :serverfix 记住我们不久前见过的 git push [远程名] [本地分支]:[远程分支] 语法，如果省略 [本地分支]，那就等于是在说“在这里提取空白然后把它变成[远程分支]”。
+
