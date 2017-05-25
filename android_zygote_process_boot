@@ -1,0 +1,68 @@
+用户空间启动的第一个进程是init进程，由内核启动，init进程的应用程序在：
+system/core/init/init.c
+init应用程序在执行过程中会解析一个脚本文件：
+system/core/rootdir/init.rc
+该脚本文件有一段：
+service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
+    class main
+    socket zygote stream 660 root system
+    onrestart write /sys/android_power/request_state wake
+    onrestart write /sys/power/state on
+    onrestart restart media
+    onrestart restart netd
+
+基本语法service <name> <pathname> [ <argument> ]*
+service关键字意思是启动名字为zygote进程 ，该进程的应用程序路径在/system/bin/app_process 后面是参数
+
+class <name>
+   Specify a class name for the service.  All services in a
+   named class may be started or stopped together.  A service
+   is in the class "default" if one is not specified via the
+   class option.
+
+socket <name> <type> <perm> [ <user> [ <group> ] ]
+   Create a unix domain socket named /dev/socket/<name> and pass
+   its fd to the launched process.  <type> must be "dgram", "stream" or "seqpacket".
+   User and group default to 0.
+
+socket关键字表示这个zygote进程需要一个名称为"zygote"的socket资源，这样，系统启动后，我们就可以在/dev/socket目录下看到有一个名为zygote的文件
+onrestart
+    Execute a Command (see below) when service restarts.
+onrestart关键字表示这个zygote进程重启时需要执行的命令。
+
+ps:servicemanager也是在该进程启动的
+
+Zygote进程要执行的程序便是system/bin/app_process了，它的源代码位于frameworks/base/cmds/app_process/app_main.cpp文件中，入口函数是main。
+
+涉及两个类：
+class AppRuntime : public AndroidRuntime
+
+AndroidRuntime类定义在frameworks/base/core/jni/AndroidRuntime.cpp
+
+主要调用start函数：
+void AndroidRuntime::start(const char* className, const char* options)；//参数是"com.android.internal.os.ZygoteInit"   "start-system-server"
+
+该函数作用：
+ 这个函数的作用是启动Android系统运行时库，它主要做了三件事情，一是调用函数startVM启动虚拟机，二是调用函数startReg注册JNI方法，三是调用了com.android.internal.os.ZygoteInit类的main函数。
+frameworks/base/core/Java/com/android/internal/os/ZygoteInit.java
+ZygoteInit的main(String argv[])方法 参数是 "com.android.internal.os.ZygoteInit"   "start-system-server"
+    它主要作了三件事情，一个调用registerZygoteSocket函数创建了一个socket接口，用来和ActivityManagerService通讯，二是调用startSystemServer函数来启动SystemServer组件，三是调用runSelectLoopMode函数进入一个无限循环在前面创建的socket接口上等待ActivityManagerService请求创建新的应用程序进程。
+
+
+
+startSystemServer函数：
+创建SystemServer进程
+通过函数：RuntimeInit.zygoteInit(parsedArgs.targetSdkVersion, parsedArgs.remainingArgs);
+frameworks/base/core/java/com/android/internal/os/RuntimeInit.java
+这个函数会执行两个操作，一个是调用zygoteInitNative函数来执行一个Binder进程间通信机制的初始化工作，这个工作完成之后，这个进程中的Binder对象就可以方便地进行进程间通信了，另一个是调用上面Step 5传进来的com.android.server.SystemServer类的main函数。
+
+applicationInit（）函数调用SystemServer类的main函数。
+
+frameworks/base/services/java/com/android/server/SystemServer.java
+
+ 执行init1(args);
+init1(args)会调用init2(args); 
+init2(args);创建一个线程 执行  主要执行各种服务启动比如ams wms pms
+
+
+
